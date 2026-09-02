@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>King's Shot – Troop Split % Calculator</title>
+<style>
+  :root{
+    --bg: #0f1720;
+    --panel: #17212b;
+    --panel-2: #1e2a36;
+    --border: #2b3947;
+    --accent: #4fd1c5;
+    --accent-2: #f6ad55;
+    --accent-3: #63b3ed;
+    --text: #e6edf3;
+    --muted: #8b9bab;
+    --danger: #f56565;
+  }
+  * { box-sizing: border-box; }
+  body{
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 10% -10%, #1b2a35 0%, var(--bg) 60%);
+    color: var(--text);
+    padding: 24px 16px 60px;
+  }
+  .wrap{
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  h1{
+    font-size: 1.4rem;
+    margin: 0 0 4px;
+  }
+  .sub{
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+  .card h2{
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  .row{
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .field{
+    flex: 1 1 160px;
+  }
+  label{
+    display:block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  input[type=number]{
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 1rem;
+  }
+  input[type=number]:focus{
+    outline: none;
+    border-color: var(--accent);
+  }
+  .troop-row{
+    display: grid;
+    grid-template-columns: 90px 1fr 90px;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .troop-row .swatch{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+  }
+  .split-total{
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .split-total.bad{ color: var(--danger); }
+  table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  th, td{
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  th{
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  tr:last-child td{ border-bottom: none; }
+  .num{ text-align: right; font-variant-numeric: tabular-nums; }
+  .highlight{
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .foot-row td{
+    border-top: 2px solid var(--border);
+    font-weight: 600;
+  }
+  .pill{
+    display:inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    background: rgba(79,209,197,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(79,209,197,0.35);
+  }
+  .note{
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+  .rounded-toggle{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .rounded-toggle input{ accent-color: var(--accent); width:16px; height:16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Troop Split % Calculator</h1>
+  <div class="sub">Figure out what slider % (of your total capacity) to set on each troop type, so a target sub-march comes out split the way you want.</div>
+
+  <div class="card">
+    <h2>1. Your Numbers</h2>
+    <div class="row">
+      <div class="field">
+        <label for="total">Total Troop Capacity</label>
+        <input type="number" id="total" value="71000" min="1">
+      </div>
+      <div class="field">
+        <label for="target">Target March Size (out of total)</label>
+        <input type="number" id="target" value="31000" min="0">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Split Within the Target March</h2>
+    <div id="troopRows"></div>
+    <div class="split-total" id="splitTotalMsg"></div>
+  </div>
+
+  <div class="card">
+    <label class="rounded-toggle">
+      <input type="checkbox" id="showRounded" checked>
+      Also show rounded whole-number % (for sliders that don't accept decimals)
+    </label>
+    <h2>3. Slider % to Set (based on total capacity)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Troop</th>
+          <th class="num">Share of March</th>
+          <th class="num">Troops (target)</th>
+          <th class="num">Exact Slider %</th>
+          <th class="num" id="roundedHeader">Rounded %</th>
+          <th class="num" id="roundedTroopsHeader">Troops (rounded)</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+      <tfoot>
+        <tr class="foot-row">
+          <td>Total March</td>
+          <td class="num" id="footShare">100%</td>
+          <td class="num" id="footTroops">-</td>
+          <td class="num" id="footExact">-</td>
+          <td class="num" id="footRounded">-</td>
+          <td class="num" id="footRoundedTroops">-</td>
+        </tr>
+      </tfoot>
+    </table>
+    <div class="note" id="footnote"></div>
+  </div>
+</div>
+
+<script>
+  const COLORS = ['#4fd1c5', '#f6ad55', '#63b3ed', '#f687b3', '#b794f4', '#68d391'];
+
+  let troops = [
+    { name: 'Troop 1', pct: 60 },
+    { name: 'Troop 2', pct: 20 },
+    { name: 'Troop 3', pct: 20 }
+  ];
+
+  const troopRowsEl = document.getElementById('troopRows');
+  const totalEl = document.getElementById('total');
+  const targetEl = document.getElementById('target');
+  const showRoundedEl = document.getElementById('showRounded');
+  const splitTotalMsgEl = document.getElementById('splitTotalMsg');
+  const resultsBody = document.getElementById('resultsBody');
+
+  function renderTroopInputs() {
+    troopRowsEl.innerHTML = '';
+    troops.forEach((t, i) => {
+      const row = document.createElement('div');
+      row.className = 'troop-row';
+      row.innerHTML = `
+        <div><span class="swatch" style="background:${COLORS[i % COLORS.length]}"></span>${t.name}</div>
+        <input type="number" min="0" max="100" step="0.01" value="${t.pct}" data-idx="${i}" class="pctInput">
+        <div class="num">% of march</div>
+      `;
+      troopRowsEl.appendChild(row);
+    });
+    troopRowsEl.querySelectorAll('.pctInput').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const idx = +e.target.dataset.idx;
+        troops[idx].pct = parseFloat(e.target.value) || 0;
+        compute();
+      });
+    });
+  }
+
+  function fmt(n, decimals = 0) {
+    return n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
+
+  function compute() {
+    const total = parseFloat(totalEl.value) || 0;
+    const target = parseFloat(targetEl.value) || 0;
+    const showRounded = showRoundedEl.checked;
+
+    document.getElementById('roundedHeader').style.display = showRounded ? '' : 'none';
+    document.getElementById('roundedTroopsHeader').style.display = showRounded ? '' : 'none';
+    resultsBody.querySelectorAll('.roundedCell').forEach(c => c.style.display = showRounded ? '' : 'none');
+
+    const splitSum = troops.reduce((s, t) => s + t.pct, 0);
+    if (Math.abs(splitSum - 100) > 0.01) {
+      splitTotalMsgEl.textContent = `Split adds up to ${fmt(splitSum, 2)}% (should be 100%)`;
+      splitTotalMsgEl.classList.add('bad');
+    } else {
+      splitTotalMsgEl.textContent = `Split adds up to 100% ✓`;
+      splitTotalMsgEl.classList.remove('bad');
+    }
+
+    resultsBody.innerHTML = '';
+    let sumTroops = 0, sumExact = 0, sumRoundedPct = 0, sumRoundedTroops = 0;
+
+    troops.forEach((t, i) => {
+      const troopCount = target * (t.pct / 100);
+      const exactSliderPct = total > 0 ? (troopCount / total) * 100 : 0;
+      const roundedSliderPct = Math.round(exactSliderPct);
+      const roundedTroopCount = total * (roundedSliderPct / 100);
+
+      sumTroops += troopCount;
+      sumExact += exactSliderPct;
+      sumRoundedPct += roundedSliderPct;
+      sumRoundedTroops += roundedTroopCount;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="swatch" style="background:${COLORS[i % COLORS.length]}"></span>${t.name}</td>
+        <td class="num">${fmt(t.pct, t.pct % 1 === 0 ? 0 : 2)}%</td>
+        <td class="num">${fmt(troopCount)}</td>
+        <td class="num highlight">${fmt(exactSliderPct, 2)}%</td>
+        <td class="num roundedCell" style="display:${showRounded ? '' : 'none'}">${roundedSliderPct}%</td>
+        <td class="num roundedCell" style="display:${showRounded ? '' : 'none'}">${fmt(roundedTroopCount)}</td>
+      `;
+      resultsBody.appendChild(tr);
+    });
+
+    document.getElementById('footShare').textContent = fmt(troops.reduce((s,t)=>s+t.pct,0),2) + '%';
+    document.getElementById('footTroops').textContent = fmt(sumTroops);
+    document.getElementById('footExact').textContent = fmt(sumExact, 2) + '%';
+    document.getElementById('footRounded').textContent = showRounded ? sumRoundedPct + '%' : '-';
+    document.getElementById('footRoundedTroops').textContent = showRounded ? fmt(sumRoundedTroops) : '-';
+
+    const footnote = document.getElementById('footnote');
+    if (showRounded) {
+      footnote.textContent = `If your game only accepts whole-number slider %, use the "Rounded %" column. Note this shifts your actual march size slightly (${fmt(sumRoundedTroops)} vs your ${fmt(target)} target).`;
+    } else {
+      footnote.textContent = `"Exact Slider %" is the precise % of your total capacity to set on each troop type's slider.`;
+    }
+  }
+
+  totalEl.addEventListener('input', compute);
+  targetEl.addEventListener('input', compute);
+  showRoundedEl.addEventListener('change', compute);
+
+  renderTroopInputs();
+  compute();
+</script>
+</body>
+</html>
