@@ -126,6 +126,14 @@
     border-top: 2px solid var(--border);
     font-weight: 600;
   }
+  .table-scroll{
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-scroll table{
+    min-width: 620px;
+  }
   .pill{
     display:inline-block;
     padding: 2px 8px;
@@ -185,29 +193,31 @@
       Also show rounded whole-number % (for sliders that don't accept decimals)
     </label>
     <h2>3. Slider % to Set (based on total capacity)</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Troop</th>
-          <th class="num">Share of March</th>
-          <th class="num">Troops (target)</th>
-          <th class="num">Exact Slider %</th>
-          <th class="num" id="roundedHeader">Rounded %</th>
-          <th class="num" id="roundedTroopsHeader">Troops (rounded)</th>
-        </tr>
-      </thead>
-      <tbody id="resultsBody"></tbody>
-      <tfoot>
-        <tr class="foot-row">
-          <td>Total March</td>
-          <td class="num" id="footShare">100%</td>
-          <td class="num" id="footTroops">-</td>
-          <td class="num" id="footExact">-</td>
-          <td class="num" id="footRounded">-</td>
-          <td class="num" id="footRoundedTroops">-</td>
-        </tr>
-      </tfoot>
-    </table>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Troop</th>
+            <th class="num">Share of March</th>
+            <th class="num">Troops (target)</th>
+            <th class="num">Exact Slider %</th>
+            <th class="num" id="roundedHeader">Rounded %</th>
+            <th class="num" id="roundedTroopsHeader">Troops (rounded)</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+        <tfoot>
+          <tr class="foot-row">
+            <td>Total March</td>
+            <td class="num" id="footShare">100%</td>
+            <td class="num" id="footTroops">-</td>
+            <td class="num" id="footExact">-</td>
+            <td class="num" id="footRounded">-</td>
+            <td class="num" id="footRoundedTroops">-</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
     <div class="note" id="footnote"></div>
   </div>
 </div>
