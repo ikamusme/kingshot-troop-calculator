@@ -160,9 +160,67 @@
     user-select: none;
   }
   .rounded-toggle input{ accent-color: var(--accent); width:16px; height:16px; }
+
+  /* ---- Tabs (new) ---- */
+  .tabbar{
+    max-width: 720px;
+    margin: 0 auto 18px;
+    display: flex;
+    gap: 8px;
+  }
+  .tabbtn{
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .tabbtn.active{
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--panel-2);
+    font-weight: 600;
+  }
+  .tabpanel{ display: none; }
+  .tabpanel.active{ display: block; }
+  .bt-presets{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .bt-presets button{
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .bt-presets button:hover{ border-color: var(--accent); }
+  .bt-warn{ color: var(--accent-2); }
+  .bt-submit{
+    width: 100%;
+    background: var(--accent);
+    color: #0f1720;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 18px;
+  }
+  .bt-submit:active{ transform: scale(0.99); }
 </style>
 </head>
 <body>
+
+<div class="tabbar">
+  <button class="tabbtn active" data-tab="tabCalc">Split Calculator</button>
+  <button class="tabbtn" data-tab="tabBT">BT Calculation</button>
+</div>
+
+<div class="tabpanel active" id="tabCalc">
 <div class="wrap">
   <h1>Troop Split % Calculator</h1>
   <div class="sub">Figure out what slider % (of your total capacity) to set on each troop type, so a target sub-march comes out split the way you want.</div>
@@ -220,6 +278,105 @@
     </div>
     <div class="note" id="footnote"></div>
   </div>
+</div>
+</div>
+
+<!-- ================= NEW TAB: BT CALCULATION ================= -->
+<div class="tabpanel" id="tabBT">
+<div class="wrap">
+  <h1>Bear Trap Calculation</h1>
+  <div class="sub">Splits your total troops across your march queues. Archers go in first and are divided equally between every march; cavalry and infantry fill whatever space is left.</div>
+
+  <div class="card">
+    <h2>1. Troops &amp; Queues</h2>
+    <div class="row">
+      <div class="field">
+        <label for="btTotal">Total Troops Count</label>
+        <input type="number" id="btTotal" value="338200" min="0">
+      </div>
+      <div class="field">
+        <label for="btQueues">Number of March Queues</label>
+        <input type="number" id="btQueues" value="6" min="1" step="1">
+      </div>
+      <div class="field">
+        <label for="btMax">Max Troops per Formation (0 = no limit)</label>
+        <input type="number" id="btMax" value="0" min="0">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Your Troop Ratio (what you own)</h2>
+    <div class="row">
+      <div class="field">
+        <label for="btOwnInf">Infantry %</label>
+        <input type="number" id="btOwnInf" value="30" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="btOwnCav">Cavalry %</label>
+        <input type="number" id="btOwnCav" value="30" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="btOwnArc">Archers %</label>
+        <input type="number" id="btOwnArc" value="40" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="split-total" id="btOwnMsg"></div>
+    <div class="note" id="btOwnNote"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Target Ratio (what you want to send)</h2>
+    <div class="row">
+      <div class="field">
+        <label for="btInf">Infantry %</label>
+        <input type="number" id="btInf" value="1" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="btCav">Cavalry %</label>
+        <input type="number" id="btCav" value="10" min="0" step="0.01">
+      </div>
+      <div class="field">
+        <label for="btArc">Archers %</label>
+        <input type="number" id="btArc" value="89" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="split-total" id="btRatioMsg"></div>
+    <div class="bt-presets">
+      <button type="button" data-r="1,10,89">1 / 10 / 89 (Gen 4+)</button>
+      <button type="button" data-r="10,10,80">10 / 10 / 80</button>
+      <button type="button" data-r="0,20,80">0 / 20 / 80 (joiner)</button>
+    </div>
+    <label class="rounded-toggle" style="margin-top:14px;margin-bottom:0">
+      <input type="checkbox" id="btAuto" checked>
+      Auto adjust the ratio to my troops (untick to force these exact values)
+    </label>
+  </div>
+
+  <button type="button" class="bt-submit" id="btSubmit">Calculate</button>
+
+  <div class="card">
+    <h2>4. Troops per March</h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>March</th>
+            <th class="num">Infantry</th>
+            <th class="num">Cavalry</th>
+            <th class="num">Archers</th>
+            <th class="num">Total</th>
+          </tr>
+        </thead>
+        <tbody id="btBody"></tbody>
+        <tfoot>
+          <tr class="foot-row" id="btFoot"></tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="note" id="btNote"></div>
+  </div>
+</div>
 </div>
 
 <script>
@@ -327,6 +484,154 @@
 
   renderTroopInputs();
   compute();
+
+  /* ================= Tabs (new) ================= */
+  document.querySelectorAll('.tabbtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabbtn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.tabpanel').forEach(p => p.classList.toggle('active', p.id === btn.dataset.tab));
+    });
+  });
+
+  /* ================= Bear Trap calculation (new) ================= */
+  const $bt = id => document.getElementById(id);
+
+  // Split `amount` across slots in proportion to `weights`, whole numbers, exact sum.
+  function distribute(amount, weights) {
+    const wSum = weights.reduce((a, b) => a + b, 0);
+    if (wSum <= 0 || amount <= 0) return weights.map(() => 0);
+    const raw = weights.map(w => amount * w / wSum);
+    const out = raw.map(Math.floor);
+    let left = amount - out.reduce((a, b) => a + b, 0);
+    raw.map((r, i) => [r - Math.floor(r), i])
+       .sort((a, b) => b[0] - a[0])
+       .forEach(([, i]) => { if (left > 0) { out[i]++; left--; } });
+    return out;
+  }
+
+  function computeBT() {
+    const num = id => Math.max(0, Math.floor(parseFloat($bt(id).value) || 0));
+    const total = num('btTotal');
+    // split the total into what you own, using your own troop ratio
+    const oR = ['btOwnInf','btOwnCav','btOwnArc'].map(id => Math.max(0, parseFloat($bt(id).value) || 0));
+    const oSum = oR.reduce((a, b) => a + b, 0);
+    const oMsg = $bt('btOwnMsg');
+    if (Math.abs(oSum - 100) > 0.01) {
+      oMsg.textContent = `Ratio adds up to ${fmt(oSum, 2)}% (should be 100%) – scaled to 100% for the calculation.`;
+      oMsg.classList.add('bad');
+    } else {
+      oMsg.textContent = 'Ratio adds up to 100% ✓';
+      oMsg.classList.remove('bad');
+    }
+    const [ownI, ownC, ownA] = distribute(total, oSum > 0 ? oR : [0, 0, 1]);
+    $bt('btOwnNote').textContent = `You own: ${fmt(ownI)} infantry, ${fmt(ownC)} cavalry, ${fmt(ownA)} archers. If you're short of a type for the target ratio, the calculator uses what you have and adjusts automatically.`;
+    const queues = Math.max(1, num('btQueues'));
+    const maxCap = num('btMax');
+    let inf = Math.max(0, parseFloat($bt('btInf').value) || 0);
+    let cav = Math.max(0, parseFloat($bt('btCav').value) || 0);
+    let arc = Math.max(0, parseFloat($bt('btArc').value) || 0);
+
+    const ratioSum = inf + cav + arc;
+    const msg = $bt('btRatioMsg');
+    if (Math.abs(ratioSum - 100) > 0.01) {
+      msg.textContent = `Ratio adds up to ${fmt(ratioSum, 2)}% (should be 100%) – values are scaled to 100% for the calculation.`;
+      msg.classList.add('bad');
+    } else {
+      msg.textContent = 'Ratio adds up to 100% ✓';
+      msg.classList.remove('bad');
+    }
+    if (ratioSum <= 0) { arc = 1; inf = 0; cav = 0; }
+    const s = inf + cav + arc;
+    inf /= s; cav /= s; arc /= s;
+
+    // 1) slots to fill (max limit caps each formation)
+    const slots = maxCap > 0 ? Math.min(total, maxCap * queues) : total;
+
+    const auto = $bt('btAuto').checked;
+    let A, C, I;
+    if (auto) {
+      // archers: wanted by ratio, limited by what you own
+      A = Math.min(ownA, Math.round(slots * arc));
+      const rest = slots - A;
+      // cavalry / infantry fill the rest in their ratio, limited by stock
+      const ci = cav + inf;
+      C = ci > 0 ? Math.round(rest * cav / ci) : 0;
+      I = rest - C;
+      if (C > ownC) { I += C - ownC; C = ownC; }
+      if (I > ownI) { C += I - ownI; I = ownI; }
+      C = Math.min(C, ownC); I = Math.min(I, ownI);
+      // still short? top up with spare archers, then cav / infantry
+      let short = slots - (A + C + I);
+      if (short > 0) { const add = Math.min(short, ownA - A); A += add; short -= add; }
+      if (short > 0) { const add = Math.min(short, ownC - C); C += add; short -= add; }
+      if (short > 0) { const add = Math.min(short, ownI - I); I += add; short -= add; }
+    } else {
+      // forced: use the target ratio exactly, ignoring what you own
+      A = Math.round(slots * arc);
+      C = Math.round(slots * cav);
+      I = slots - A - C;
+    }
+    const used = A + C + I;
+
+    // per march: equal sizes, archers equal, cav/inf fill the free space
+    const sizes = distribute(used, Array(queues).fill(1));
+    const archers = distribute(A, Array(queues).fill(1)).map((a, i) => Math.min(a, sizes[i]));
+    const free = sizes.map((sz, i) => sz - archers[i]);
+    const cavs = distribute(C, free);
+    const infs = free.map((f, i) => f - cavs[i]);
+
+    const body = $bt('btBody');
+    body.innerHTML = '';
+    let sI = 0, sC = 0, sA = 0, sT = 0;
+    for (let i = 0; i < queues; i++) {
+      const t = infs[i] + cavs[i] + archers[i];
+      sI += infs[i]; sC += cavs[i]; sA += archers[i]; sT += t;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>March ${i + 1}</td>
+        <td class="num">${fmt(infs[i])}</td>
+        <td class="num">${fmt(cavs[i])}</td>
+        <td class="num highlight">${fmt(archers[i])}</td>
+        <td class="num">${fmt(t)}</td>`;
+      body.appendChild(tr);
+    }
+    const pct = v => sT > 0 ? fmt(v / sT * 100, 1) + '%' : '-';
+    $bt('btFoot').innerHTML = `
+      <td>Total</td>
+      <td class="num">${fmt(sI)}<br><small>${pct(sI)}</small></td>
+      <td class="num">${fmt(sC)}<br><small>${pct(sC)}</small></td>
+      <td class="num">${fmt(sA)}<br><small>${pct(sA)}</small></td>
+      <td class="num">${fmt(sT)}</td>`;
+
+    const notes = [];
+    notes.push(`Ratio actually used: ${pct(sI)} infantry / ${pct(sC)} cavalry / ${pct(sA)} archers.`);
+    if (!auto) {
+      const over = [['infantry', sI - ownI], ['cavalry', sC - ownC], ['archers', sA - ownA]].filter(x => x[1] > 0);
+      if (over.length) notes.push(`<span class="bt-warn">Forced ratio needs more than you own: short by ${over.map(x => fmt(x[1]) + ' ' + x[0]).join(', ')}.</span>`);
+    }
+    if (auto && sA < Math.round(slots * arc)) notes.push(`<span class="bt-warn">You own fewer archers than the ratio asks for, so the ratio was adjusted (target ${fmt(Math.round(slots * arc))} archers, using ${fmt(sA)}).</span>`);
+    const left = [['infantry', ownI - sI], ['cavalry', ownC - sC], ['archers', ownA - sA]].filter(x => x[1] > 0);
+    if (left.length) notes.push(`Not sent: ${left.map(x => fmt(x[1]) + ' ' + x[0]).join(', ')}.`);
+    if (maxCap > 0 && total > slots) notes.push(`<span class="bt-warn">Max limit: ${fmt(queues)} marches × ${fmt(maxCap)} only holds ${fmt(slots)} troops.</span>`);
+    $bt('btNote').innerHTML = notes.join('<br>');
+  }
+
+  ['btTotal','btOwnInf','btOwnCav','btOwnArc','btQueues','btMax','btInf','btCav','btArc'].forEach(id => $bt(id).addEventListener('input', computeBT));
+  // Submit button + extra events so the result always refreshes
+  $bt('btSubmit').addEventListener('click', computeBT);
+  $bt('btAuto').addEventListener('change', computeBT);
+  ['btTotal','btOwnInf','btOwnCav','btOwnArc','btQueues','btMax','btInf','btCav','btArc'].forEach(id => {
+    $bt(id).addEventListener('change', computeBT);
+    $bt(id).addEventListener('keyup', computeBT);
+  });
+  document.querySelectorAll('.bt-presets button').forEach(b => {
+    b.addEventListener('click', () => {
+      const [i, c, a] = b.dataset.r.split(',');
+      $bt('btInf').value = i; $bt('btCav').value = c; $bt('btArc').value = a;
+      computeBT();
+    });
+  });
+  computeBT();
 </script>
 </body>
 </html>
